@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { quiz } from '../services/api';
 import {
   Chart as ChartJS,
@@ -50,20 +50,24 @@ const Dashboard = () => {
 
   // Helper function to determine if a subject is at risk and its severity
   const getRiskLevel = (marks, attendance) => {
-    if (marks < 45 || attendance < 60) return 'high';
-    if (marks < 60 || attendance < 75) return 'moderate';
-    return 'safe';
+    if (marks < 45 || attendance < 60) {
+      return 'high';
+    } else if (marks < 60 || attendance < 75) {
+      return 'moderate';
+    }
+    return 'good';
   };
 
-  // Calculate at-risk subjects with severity
-  const atRiskSubjects = quizData?.subjects ? Object.entries(quizData.subjects)
-    .filter(([_, subject]) => getRiskLevel(subject.marks, subject.attendance) !== 'safe')
-    .map(([subject, data]) => ({
-      name: subject,
-      marks: data.marks,
-      attendance: data.attendance,
-      severity: getRiskLevel(data.marks, data.attendance)
-    })) : [];
+  const atRiskSubjects = useMemo(() => {
+    return quizData?.subjects ? Object.entries(quizData.subjects)
+      .filter(([_, subject]) => getRiskLevel(subject.marks, subject.attendance) !== 'good')
+      .map(([subject, data]) => ({
+        name: subject,
+        marks: data.marks,
+        attendance: data.attendance,
+        riskLevel: getRiskLevel(data.marks, data.attendance)
+      })) : [];
+  }, [quizData]);
 
   if (loading) {
     return (
@@ -98,46 +102,20 @@ const Dashboard = () => {
     labels: Object.keys(quizData.subjects || {}),
     datasets: [
       {
-        label: 'Marks (%)',
+        label: 'Marks',
         data: Object.values(quizData.subjects || {}).map(subject => subject.marks),
         borderColor: Object.values(quizData.subjects || {}).map(subject => {
           const riskLevel = getRiskLevel(subject.marks, subject.attendance);
-          switch (riskLevel) {
-            case 'high': return 'rgb(220, 38, 38)'; // Dark red
-            case 'moderate': return 'rgb(234, 179, 8)'; // Yellow
-            default: return 'rgb(34, 197, 94)'; // Green
-          }
+          return riskLevel === 'high' ? '#dc2626' : 
+                 riskLevel === 'moderate' ? '#f97316' : 
+                 '#22c55e';
         }),
         backgroundColor: Object.values(quizData.subjects || {}).map(subject => {
           const riskLevel = getRiskLevel(subject.marks, subject.attendance);
-          switch (riskLevel) {
-            case 'high': return 'rgba(220, 38, 38, 0.2)';
-            case 'moderate': return 'rgba(234, 179, 8, 0.2)';
-            default: return 'rgba(34, 197, 94, 0.2)';
-          }
+          return riskLevel === 'high' ? 'rgba(220, 38, 38, 0.2)' : 
+                 riskLevel === 'moderate' ? 'rgba(249, 115, 22, 0.2)' : 
+                 'rgba(34, 197, 94, 0.2)';
         }),
-        tension: 0.1,
-      },
-      {
-        label: 'Attendance (%)',
-        data: Object.values(quizData.subjects || {}).map(subject => subject.attendance),
-        borderColor: Object.values(quizData.subjects || {}).map(subject => {
-          const riskLevel = getRiskLevel(subject.marks, subject.attendance);
-          switch (riskLevel) {
-            case 'high': return 'rgb(220, 38, 38)';
-            case 'moderate': return 'rgb(234, 179, 8)';
-            default: return 'rgb(34, 197, 94)';
-          }
-        }),
-        backgroundColor: Object.values(quizData.subjects || {}).map(subject => {
-          const riskLevel = getRiskLevel(subject.marks, subject.attendance);
-          switch (riskLevel) {
-            case 'high': return 'rgba(220, 38, 38, 0.2)';
-            case 'moderate': return 'rgba(234, 179, 8, 0.2)';
-            default: return 'rgba(34, 197, 94, 0.2)';
-          }
-        }),
-        tension: 0.1,
       },
     ],
   };
@@ -146,12 +124,20 @@ const Dashboard = () => {
     labels: Object.keys(quizData.subjects || {}),
     datasets: [
       {
-        data: Object.values(quizData.subjects || {}).map(subject => subject.interest),
-        backgroundColor: Object.values(quizData.subjects || {}).map(subject => 
-          getRiskLevel(subject.marks, subject.attendance) === 'high' || getRiskLevel(subject.marks, subject.attendance) === 'moderate'
-            ? 'rgba(220, 38, 38, 0.8)'
-            : 'rgba(34, 197, 94, 0.8)'
-        ),
+        label: 'Attendance',
+        data: Object.values(quizData.subjects || {}).map(subject => subject.attendance),
+        borderColor: Object.values(quizData.subjects || {}).map(subject => {
+          const riskLevel = getRiskLevel(subject.marks, subject.attendance);
+          return riskLevel === 'high' ? '#dc2626' : 
+                 riskLevel === 'moderate' ? '#f97316' : 
+                 '#22c55e';
+        }),
+        backgroundColor: Object.values(quizData.subjects || {}).map(subject => {
+          const riskLevel = getRiskLevel(subject.marks, subject.attendance);
+          return riskLevel === 'high' ? 'rgba(220, 38, 38, 0.2)' : 
+                 riskLevel === 'moderate' ? 'rgba(249, 115, 22, 0.2)' : 
+                 'rgba(34, 197, 94, 0.2)';
+        }),
       },
     ],
   };
@@ -209,58 +195,34 @@ const Dashboard = () => {
 
         {/* Enhanced At Risk Subjects Alert */}
         {atRiskSubjects.length > 0 && (
-          <div className="bg-gradient-to-r from-red-50 to-red-100 border-l-4 border-red-500 p-6 mb-8 rounded-r-lg shadow-lg transform hover:scale-[1.02] transition-transform duration-300">
-            <div className="flex">
-              <div className="flex-shrink-0">
-                <div className="p-2 bg-red-100 rounded-full">
-                  <svg className="h-6 w-6 text-red-600" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                    <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                  </svg>
-                </div>
-              </div>
-              <div className="ml-4">
-                <h3 className="text-lg font-semibold text-red-800">At Risk Subjects</h3>
-                <div className="mt-3">
-                  <p className="text-sm text-red-700 mb-2">The following subjects need immediate attention:</p>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {atRiskSubjects.map((subject, index) => (
-                      <div 
-                        key={index} 
-                        className={`p-3 rounded-lg ${
-                          subject.severity === 'high' 
-                            ? 'bg-red-100 border border-red-200' 
-                            : 'bg-yellow-50 border border-yellow-200'
-                        }`}
-                      >
-                        <div className="flex items-center justify-between">
-                          <span className="font-medium capitalize text-gray-900">{subject.name}</span>
-                          <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
-                            subject.severity === 'high'
-                              ? 'bg-red-100 text-red-800'
-                              : 'bg-yellow-100 text-yellow-800'
-                          }`}>
-                            {subject.severity === 'high' ? 'High Risk' : 'Moderate Risk'}
-                          </span>
-                        </div>
-                        <div className="mt-2 grid grid-cols-2 gap-2 text-sm">
-                          <div>
-                            <span className="text-gray-600">Marks:</span>
-                            <span className={`ml-2 font-medium ${
-                              subject.marks < 45 ? 'text-red-700' : 'text-yellow-700'
-                            }`}>{subject.marks}%</span>
-                          </div>
-                          <div>
-                            <span className="text-gray-600">Attendance:</span>
-                            <span className={`ml-2 font-medium ${
-                              subject.attendance < 60 ? 'text-red-700' : 'text-yellow-700'
-                            }`}>{subject.attendance}%</span>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
+          <div className="p-4 mb-6 rounded-lg bg-gradient-to-r from-red-50 to-orange-50 border border-red-100">
+            <h3 className="text-lg font-semibold mb-3 text-red-800">Subjects Requiring Attention</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {atRiskSubjects.map((subject, index) => (
+                <div 
+                  key={index} 
+                  className={`p-3 rounded-md transition-all hover:scale-105 ${
+                    subject.riskLevel === 'high' 
+                      ? 'bg-red-100 border-red-200' 
+                      : 'bg-orange-100 border-orange-200'
+                  } border`}
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="font-medium">{subject.name}</span>
+                    <span className={`px-2 py-1 rounded text-sm ${
+                      subject.riskLevel === 'high'
+                        ? 'bg-red-200 text-red-800'
+                        : 'bg-orange-200 text-orange-800'
+                    }`}>
+                      {subject.riskLevel === 'high' ? 'High Risk' : 'Moderate Risk'}
+                    </span>
+                  </div>
+                  <div className="mt-2 text-sm">
+                    <p>Marks: {subject.marks}%</p>
+                    <p>Attendance: {subject.attendance}%</p>
                   </div>
                 </div>
-              </div>
+              ))}
             </div>
           </div>
         )}
