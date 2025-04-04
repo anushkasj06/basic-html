@@ -10,6 +10,9 @@ import Profile from './pages/Profile';
 import Quiz from './pages/Quiz';
 import Dashboard from './pages/Dashboard';
 import Chatbot from './components/Chatbot';
+import Prediction from './pages/Prediction';
+import StudyPlan from './pages/StudyPlan';
+import Test from './pages/Test';
 
 function App() {
   return (
@@ -42,6 +45,30 @@ function App() {
               element={
                 <PrivateRoute>
                   <Dashboard />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/prediction"
+              element={
+                <PrivateRoute>
+                  <Prediction />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/studyplan"
+              element={
+                <PrivateRoute>
+                  <StudyPlan />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/test"
+              element={
+                <PrivateRoute>
+                  <Test />
                 </PrivateRoute>
               }
             />

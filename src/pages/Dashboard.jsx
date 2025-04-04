@@ -13,6 +13,7 @@ import {
   BarElement,
 } from 'chart.js';
 import { Line, Pie, Bar } from 'react-chartjs-2';
+import { useNavigate } from 'react-router-dom';
 
 // Register ChartJS components
 ChartJS.register(
@@ -31,6 +32,7 @@ const Dashboard = () => {
   const [quizData, setQuizData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchQuizData();
@@ -186,61 +188,154 @@ const Dashboard = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-r from-blue-50 to-indigo-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-7xl mx-auto">
-        <div className="text-center mb-12">
-          <h1 className="text-3xl font-bold text-gray-900 mb-4">Your Academic Dashboard</h1>
-          <p className="text-lg text-gray-600">Track your progress and performance</p>
-        </div>
+    <div className="min-h-screen bg-gray-100">
+      <div className=" shadow-sm">
+        <div className="max-w-7xl mx-auto px-4 py-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center">
 
-        {/* Enhanced At Risk Subjects Alert */}
-        {atRiskSubjects.length > 0 && (
-          <div className="p-4 mb-6 rounded-lg bg-gradient-to-r from-red-50 to-orange-50 border border-red-100">
-            <h3 className="text-lg font-semibold mb-3 text-red-800">Subjects Requiring Attention</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {atRiskSubjects.map((subject, index) => (
-                <div 
-                  key={index} 
-                  className={`p-3 rounded-md transition-all hover:scale-105 ${
-                    subject.riskLevel === 'high' 
-                      ? 'bg-red-100 border-red-200' 
-                      : 'bg-orange-100 border-orange-200'
-                  } border`}
-                >
-                  <div className="flex items-center justify-between">
-                    <span className="font-medium">{subject.name}</span>
-                    <span className={`px-2 py-1 rounded text-sm ${
-                      subject.riskLevel === 'high'
-                        ? 'bg-red-200 text-red-800'
-                        : 'bg-orange-200 text-orange-800'
-                    }`}>
-                      {subject.riskLevel === 'high' ? 'High Risk' : 'Moderate Risk'}
-                    </span>
+            <button
+              onClick={() => navigate('/prediction')}
+              className="flex items-center gap-2 bg-blue-600 text-white font-semibold px-6 py-2.5 rounded-lg 
+              hover:bg-blue-700 transition-all duration-200 shadow-md hover:shadow-lg 
+              active:transform active:scale-95"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                <path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z" />
+              </svg>
+              See Predictions
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div className="min-h-screen bg-gradient-to-r from-blue-50 to-indigo-50 py-12 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-12">
+            <h1 className="text-3xl font-bold text-gray-900 mb-4">Your Academic Dashboard</h1>
+            <p className="text-lg text-gray-600">Track your progress and performance</p>
+          </div>
+
+          {/* Enhanced At Risk Subjects Alert */}
+          {atRiskSubjects.length > 0 && (
+            <div className="p-4 mb-6 rounded-lg bg-gradient-to-r from-red-50 to-orange-50 border border-red-100">
+              <h3 className="text-lg font-semibold mb-3 text-red-800">Subjects Requiring Attention</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {atRiskSubjects.map((subject, index) => (
+                  <div 
+                    key={index} 
+                    className={`p-3 rounded-md transition-all hover:scale-105 ${
+                      subject.riskLevel === 'high' 
+                        ? 'bg-red-100 border-red-200' 
+                        : 'bg-orange-100 border-orange-200'
+                    } border`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="font-medium">{subject.name}</span>
+                      <span className={`px-2 py-1 rounded text-sm ${
+                        subject.riskLevel === 'high'
+                          ? 'bg-red-200 text-red-800'
+                          : 'bg-orange-200 text-orange-800'
+                      }`}>
+                        {subject.riskLevel === 'high' ? 'High Risk' : 'Moderate Risk'}
+                      </span>
+                    </div>
+                    <div className="mt-2 text-sm">
+                      <p>Marks: {subject.marks}%</p>
+                      <p>Attendance: {subject.attendance}%</p>
+                    </div>
                   </div>
-                  <div className="mt-2 text-sm">
-                    <p>Marks: {subject.marks}%</p>
-                    <p>Attendance: {subject.attendance}%</p>
-                  </div>
-                </div>
-              ))}
+                ))}
+              </div>
+            </div>
+          )}
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+            {/* CGPA Comparison Chart */}
+            <div className="bg-white rounded-lg shadow-lg p-6">
+              <h2 className="text-xl font-semibold text-gray-900 mb-4">CGPA Comparison</h2>
+              <div className="h-64">
+                <Bar
+                  data={cgpaComparisonData}
+                  options={{
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                      y: {
+                        beginAtZero: true,
+                        max: 10,
+                      },
+                    },
+                  }}
+                />
+              </div>
+            </div>
+
+            {/* Subject Interest Distribution */}
+            <div className="bg-white rounded-lg shadow-lg p-6">
+              <h2 className="text-xl font-semibold text-gray-900 mb-4">Subject Interest Distribution</h2>
+              <div className="h-64">
+                <Pie
+                  data={subjectInterestData}
+                  options={{
+                    responsive: true,
+                    maintainAspectRatio: false,
+                  }}
+                />
+              </div>
             </div>
           </div>
-        )}
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
-          {/* CGPA Comparison Chart */}
-          <div className="bg-white rounded-lg shadow-lg p-6">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">CGPA Comparison</h2>
-            <div className="h-64">
+          {/* Performance Comparison Chart */}
+          <div className="bg-white rounded-lg shadow-lg p-6 mb-8">
+            <h2 className="text-xl font-semibold text-gray-900 mb-4">Performance vs Best Possible Score</h2>
+            <div className="h-96">
               <Bar
-                data={cgpaComparisonData}
+                data={performanceComparisonData}
                 options={{
                   responsive: true,
                   maintainAspectRatio: false,
                   scales: {
                     y: {
                       beginAtZero: true,
-                      max: 10,
+                      max: 100,
+                      title: {
+                        display: true,
+                        text: 'Marks (%)'
+                      }
+                    }
+                  },
+                  plugins: {
+                    legend: {
+                      position: 'top',
+                    },
+                    tooltip: {
+                      callbacks: {
+                        label: function(context) {
+                          const label = context.dataset.label || '';
+                          const value = context.parsed.y;
+                          return `${label}: ${value}%`;
+                        }
+                      }
+                    }
+                  }
+                }}
+              />
+            </div>
+          </div>
+
+          {/* Subject Performance Line Chart */}
+          <div className="bg-white rounded-lg shadow-lg p-6 mb-8">
+            <h2 className="text-xl font-semibold text-gray-900 mb-4">Subject Performance Analysis</h2>
+            <div className="h-96">
+              <Line
+                data={subjectPerformanceData}
+                options={{
+                  responsive: true,
+                  maintainAspectRatio: false,
+                  scales: {
+                    y: {
+                      beginAtZero: true,
+                      max: 100,
                     },
                   },
                 }}
@@ -248,94 +343,22 @@ const Dashboard = () => {
             </div>
           </div>
 
-          {/* Subject Interest Distribution */}
-          <div className="bg-white rounded-lg shadow-lg p-6">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">Subject Interest Distribution</h2>
-            <div className="h-64">
-              <Pie
-                data={subjectInterestData}
-                options={{
-                  responsive: true,
-                  maintainAspectRatio: false,
-                }}
-              />
+          {/* Summary Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="bg-white rounded-lg shadow-lg p-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">Study Style</h3>
+              <p className="text-2xl font-bold text-blue-600 capitalize">{quizData.studyStyle}</p>
             </div>
-          </div>
-        </div>
-
-        {/* Performance Comparison Chart */}
-        <div className="bg-white rounded-lg shadow-lg p-6 mb-8">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">Performance vs Best Possible Score</h2>
-          <div className="h-96">
-            <Bar
-              data={performanceComparisonData}
-              options={{
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: {
-                  y: {
-                    beginAtZero: true,
-                    max: 100,
-                    title: {
-                      display: true,
-                      text: 'Marks (%)'
-                    }
-                  }
-                },
-                plugins: {
-                  legend: {
-                    position: 'top',
-                  },
-                  tooltip: {
-                    callbacks: {
-                      label: function(context) {
-                        const label = context.dataset.label || '';
-                        const value = context.parsed.y;
-                        return `${label}: ${value}%`;
-                      }
-                    }
-                  }
-                }
-              }}
-            />
-          </div>
-        </div>
-
-        {/* Subject Performance Line Chart */}
-        <div className="bg-white rounded-lg shadow-lg p-6 mb-8">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">Subject Performance Analysis</h2>
-          <div className="h-96">
-            <Line
-              data={subjectPerformanceData}
-              options={{
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: {
-                  y: {
-                    beginAtZero: true,
-                    max: 100,
-                  },
-                },
-              }}
-            />
-          </div>
-        </div>
-
-        {/* Summary Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="bg-white rounded-lg shadow-lg p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">Study Style</h3>
-            <p className="text-2xl font-bold text-blue-600 capitalize">{quizData.studyStyle}</p>
-          </div>
-          <div className="bg-white rounded-lg shadow-lg p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">Career Aim</h3>
-            <p className="text-2xl font-bold text-indigo-600 capitalize">{quizData.aim}</p>
-          </div>
-          <div className="bg-white rounded-lg shadow-lg p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">CGPA Gap</h3>
-            <p className="text-2xl font-bold text-green-600">
-              {(quizData.goal - quizData.currentCGPA).toFixed(2)}
-            </p>
+            <div className="bg-white rounded-lg shadow-lg p-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">Career Aim</h3>
+              <p className="text-2xl font-bold text-indigo-600 capitalize">{quizData.aim}</p>
+            </div>
+            <div className="bg-white rounded-lg shadow-lg p-6">
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">CGPA Gap</h3>
+              <p className="text-2xl font-bold text-green-600">
+                {(quizData.goal - quizData.currentCGPA).toFixed(2)}
+              </p>
+            </div>
           </div>
         </div>
       </div>

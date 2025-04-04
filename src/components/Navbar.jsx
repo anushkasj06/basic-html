@@ -1,10 +1,27 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import axios from 'axios';
 
 const Navbar = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const [hasQuizAnswers, setHasQuizAnswers] = useState(false);
+
+  useEffect(() => {
+    const checkQuizAnswers = async () => {
+      try {
+        if (user) {
+          const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/quiz/answers/${user._id}`);
+          setHasQuizAnswers(response.data.length > 0);
+        }
+      } catch (error) {
+        console.error('Error checking quiz answers:', error);
+      }
+    };
+
+    checkQuizAnswers();
+  }, [user]);
 
   const handleLogout = async () => {
     try {
@@ -45,6 +62,14 @@ const Navbar = () => {
                 >
                   Quiz
                 </Link>
+                {hasQuizAnswers && (
+                  <Link
+                    to="/studyplan"
+                    className="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium"
+                  >
+                    Study Plan
+                  </Link>
+                )}
               </div>
             )}
           </div>
